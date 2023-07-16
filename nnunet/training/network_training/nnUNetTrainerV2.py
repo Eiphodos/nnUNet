@@ -230,9 +230,12 @@ class nnUNetTrainerV2(nnUNetTrainer):
         :param run_online_evaluation:
         :return:
         """
+        timers = {}
+        time_data_gen_start = time.time()
         data_dict = next(data_generator)
         data = data_dict['data']
         target = data_dict['target']
+        timers['data_gen'] = time.time() - time_data_gen_start
 
         data = maybe_to_torch(data)
         target = maybe_to_torch(target)
@@ -245,8 +248,11 @@ class nnUNetTrainerV2(nnUNetTrainer):
 
         if self.fp16:
             with autocast():
+                time_forward_start = time.time()
                 output = self.network(data)
+                timers['forward'] = time.time() - time_forward_start
                 del data
+                time_backward_start = time.time()
                 l = self.loss(output, target)
 
             if do_backprop:
@@ -255,6 +261,7 @@ class nnUNetTrainerV2(nnUNetTrainer):
                 torch.nn.utils.clip_grad_norm_(self.network.parameters(), 12)
                 self.amp_grad_scaler.step(self.optimizer)
                 self.amp_grad_scaler.update()
+            timers['backward'] = time.time() - time_backward_start
         else:
             output = self.network(data)
             del data

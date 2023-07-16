@@ -657,7 +657,7 @@ class NetworkTrainer(object):
                 self.amp_grad_scaler.scale(l).backward()
                 self.amp_grad_scaler.step(self.optimizer)
                 self.amp_grad_scaler.update()
-            timers['backward'] = time.time() - time_forward_start
+            timers['backward'] = time.time() - time_backward_start
         else:
             output = self.network(data)
             del data

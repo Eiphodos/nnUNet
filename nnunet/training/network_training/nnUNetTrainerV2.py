@@ -264,15 +264,18 @@ class nnUNetTrainerV2(nnUNetTrainer):
                 self.amp_grad_scaler.update()
             timers['backward'] = time.time() - time_backward_start
         else:
+            time_forward_start = time.time()
             output = self.network(data)
+            timers['forward'] = time.time() - time_forward_start
             del data
+            time_backward_start = time.time()
             l = self.loss(output, target)
 
             if do_backprop:
                 l.backward()
                 torch.nn.utils.clip_grad_norm_(self.network.parameters(), 12)
                 self.optimizer.step()
-
+            timers['backward'] = time.time() - time_backward_start
         if run_online_evaluation:
             self.run_online_evaluation(output, target)
 

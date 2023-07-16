@@ -728,7 +728,7 @@ class nnUNetTrainer(NetworkTrainer):
             self.print_to_result_file("###########################################".format(mean_dice))
             self.print_to_result_file("New best mDice: {:.5f}".format(mean_dice))
             for c in range(len(global_dc_per_class)):
-                self.print_to_result_file("class {} Dice: {:.5f}".format(global_dc_per_class[c]))
+                self.print_to_result_file("class {} Dice: {:.5f}".format(c, global_dc_per_class[c]))
             self.best_val_mdice = mean_dice
 
 

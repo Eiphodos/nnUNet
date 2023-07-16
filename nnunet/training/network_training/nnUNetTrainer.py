@@ -109,6 +109,7 @@ class nnUNetTrainer(NetworkTrainer):
         self.batch_dice = batch_dice
         self.loss = DC_and_CE_loss({'batch_dice': self.batch_dice, 'smooth': 1e-5, 'do_bg': False}, {})
 
+        self.best_val_mdice = 0
         self.online_eval_foreground_dc = []
         self.online_eval_tp = []
         self.online_eval_fp = []
@@ -715,13 +716,21 @@ class nnUNetTrainer(NetworkTrainer):
                                if not np.isnan(i)]
         mean_dice = np.mean(global_dc_per_class)
         self.all_val_eval_metrics.append(mean_dice)
-        self.neptune_logger["val/epoch/mDice"].append(mean_dice)
+        self.neptune_logger["val/mDice"].append(mean_dice)
 
         self.print_to_log_file("Average global foreground Dice:", [np.round(i, 4) for i in global_dc_per_class])
         self.print_to_log_file("(interpret this as an estimate for the Dice of the different classes. This is not "
                                "exact.)")
         for c in range(len(global_dc_per_class)):
-            self.neptune_logger["val/epoch/class" + str(c) + 'Dice'].append(global_dc_per_class[c])
+            self.neptune_logger["val/class" + str(c) + 'Dice'].append(global_dc_per_class[c])
+
+        if mean_dice > self.best_val_mdice:
+            self.print_to_result_file("###########################################".format(mean_dice))
+            self.print_to_result_file("New best mDice: {:.5f}".format(mean_dice))
+            for c in range(len(global_dc_per_class)):
+                print_to_result_file("class {} Dice: {:.5f}".format(global_dc_per_class[c]))
+            self.best_val_mdice = mean_dice
+
 
         self.online_eval_foreground_dc = []
         self.online_eval_tp = []

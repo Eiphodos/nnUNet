@@ -48,7 +48,7 @@ matplotlib.use("agg")
 
 class nnUNetTrainer(NetworkTrainer):
     def __init__(self, plans_file, fold, output_folder=None, dataset_directory=None, batch_dice=True, stage=None,
-                 unpack_data=True, deterministic=True, fp16=False):
+                 unpack_data=True, deterministic=True, fp16=False, neptune_logger=None):
         """
         :param deterministic:
         :param fold: can be either [0 ... 5) for cross-validation, 'all' to train on all available training data or
@@ -85,6 +85,7 @@ class nnUNetTrainer(NetworkTrainer):
         self.dataset_directory = dataset_directory
         self.output_folder_base = self.output_folder
         self.fold = fold
+        self.neptune_logger = neptune_logger
 
         self.plans = None
 
@@ -712,11 +713,15 @@ class nnUNetTrainer(NetworkTrainer):
         global_dc_per_class = [i for i in [2 * i / (2 * i + j + k) for i, j, k in
                                            zip(self.online_eval_tp, self.online_eval_fp, self.online_eval_fn)]
                                if not np.isnan(i)]
-        self.all_val_eval_metrics.append(np.mean(global_dc_per_class))
+        mean_dice = np.mean(global_dc_per_class)
+        self.all_val_eval_metrics.append(mean_dice)
+        self.neptune_logger["mDice"].log(mean_dice, self.epoch)
 
         self.print_to_log_file("Average global foreground Dice:", [np.round(i, 4) for i in global_dc_per_class])
         self.print_to_log_file("(interpret this as an estimate for the Dice of the different classes. This is not "
                                "exact.)")
+        for c in range(len(global_dc_per_class)):
+            self.neptune_logger["class" + str(c) + 'Dice'].log(global_dc_per_class[c], self.epoch)
 
         self.online_eval_foreground_dc = []
         self.online_eval_tp = []

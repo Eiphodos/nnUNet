@@ -112,6 +112,7 @@ class NetworkTrainer(object):
         self.all_val_eval_metrics = []  # does not have to be used
         self.epoch = 0
         self.log_file = None
+        self.result_file = None
         self.deterministic = deterministic
 
         self.use_progress_bar = False

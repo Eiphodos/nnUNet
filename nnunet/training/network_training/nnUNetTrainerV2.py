@@ -278,7 +278,7 @@ class nnUNetTrainerV2(nnUNetTrainer):
 
         del target
 
-        return l.detach().cpu().numpy()
+        return l.detach().cpu().numpy(), timers
 
     def do_split(self):
         """

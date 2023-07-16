@@ -688,13 +688,13 @@ class nnUNetTrainer(NetworkTrainer):
             output_seg = output_softmax.argmax(1)
             target = target[:, 0]
             axes = tuple(range(1, len(target.shape)))
-            tp_hard = torch.zeros((target.shape[0], num_classes - 1)).to(output_seg.device.index)
-            fp_hard = torch.zeros((target.shape[0], num_classes - 1)).to(output_seg.device.index)
-            fn_hard = torch.zeros((target.shape[0], num_classes - 1)).to(output_seg.device.index)
-            for c in range(1, num_classes):
-                tp_hard[:, c - 1] = sum_tensor((output_seg == c).float() * (target == c).float(), axes=axes)
-                fp_hard[:, c - 1] = sum_tensor((output_seg == c).float() * (target != c).float(), axes=axes)
-                fn_hard[:, c - 1] = sum_tensor((output_seg != c).float() * (target == c).float(), axes=axes)
+            tp_hard = torch.zeros((target.shape[0], num_classes)).to(output_seg.device.index)
+            fp_hard = torch.zeros((target.shape[0], num_classes)).to(output_seg.device.index)
+            fn_hard = torch.zeros((target.shape[0], num_classes)).to(output_seg.device.index)
+            for c in range(0, num_classes):
+                tp_hard[:, c] = sum_tensor((output_seg == c).float() * (target == c).float(), axes=axes)
+                fp_hard[:, c] = sum_tensor((output_seg == c).float() * (target != c).float(), axes=axes)
+                fn_hard[:, c] = sum_tensor((output_seg != c).float() * (target == c).float(), axes=axes)
 
             tp_hard = tp_hard.sum(0, keepdim=False).detach().cpu().numpy()
             fp_hard = fp_hard.sum(0, keepdim=False).detach().cpu().numpy()
@@ -715,13 +715,13 @@ class nnUNetTrainer(NetworkTrainer):
                                if not np.isnan(i)]
         mean_dice = np.mean(global_dc_per_class)
         self.all_val_eval_metrics.append(mean_dice)
-        self.neptune_logger["mDice"].log(mean_dice, self.epoch)
+        self.neptune_logger["val/epoch/mDice"].append(mean_dice)
 
         self.print_to_log_file("Average global foreground Dice:", [np.round(i, 4) for i in global_dc_per_class])
         self.print_to_log_file("(interpret this as an estimate for the Dice of the different classes. This is not "
                                "exact.)")
         for c in range(len(global_dc_per_class)):
-            self.neptune_logger["class" + str(c) + 'Dice'].log(global_dc_per_class[c], self.epoch)
+            self.neptune_logger["val/epoch/class" + str(c) + 'Dice'].append(global_dc_per_class[c])
 
         self.online_eval_foreground_dc = []
         self.online_eval_tp = []

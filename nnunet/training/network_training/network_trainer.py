@@ -453,12 +453,8 @@ class NetworkTrainer(object):
                         train_losses_epoch.append(l)
             else:
                 for i in range(self.num_batches_per_epoch):
-                    l, timers = self.run_iteration(self.tr_gen, True)
+                    l = self.run_iteration(self.tr_gen, True)
                     train_losses_epoch.append(l)
-                    if i % 10 == 0:
-                        self.print_to_log_file("Finished batch {}/{} ...".format(i, self.num_batches_per_epoch))
-                        for k, v in timers.items():
-                            self.print_to_log_file("Timer {}: {:.5f} ...".format(k, v))
 
             self.all_tr_losses.append(np.mean(train_losses_epoch))
             self.print_to_log_file("train loss : %.4f" % self.all_tr_losses[-1])
@@ -629,10 +625,8 @@ class NetworkTrainer(object):
                                  self.all_tr_losses[-1]
 
     def run_iteration(self, data_generator, do_backprop=True, run_online_evaluation=False):
-        timers = {}
-        time_data_gen_start = time.time()
         data_dict = next(data_generator)
-        timers['data_gen'] = time.time() - time_data_gen_start
+
         data = data_dict['data']
         target = data_dict['target']
 
@@ -646,18 +640,14 @@ class NetworkTrainer(object):
 
         if self.fp16:
             with autocast():
-                time_forward_start = time.time()
                 output = self.network(data)
-                timers['forward'] = time.time() - time_forward_start
                 del data
-                time_backward_start = time.time()
                 l = self.loss(output, target)
 
             if do_backprop:
                 self.amp_grad_scaler.scale(l).backward()
                 self.amp_grad_scaler.step(self.optimizer)
                 self.amp_grad_scaler.update()
-            timers['backward'] = time.time() - time_backward_start
         else:
             output = self.network(data)
             del data
@@ -672,7 +662,7 @@ class NetworkTrainer(object):
 
         del target
 
-        return l.detach().cpu().numpy(), timers
+        return l.detach().cpu().numpy()
 
     def run_online_evaluation(self, *args, **kwargs):
         """

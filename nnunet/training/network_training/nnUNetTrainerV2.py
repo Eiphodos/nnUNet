@@ -18,7 +18,6 @@ from typing import Tuple
 
 import numpy as np
 import torch
-import time
 from nnunet.training.data_augmentation.data_augmentation_moreDA import get_moreDA_augmentation
 from nnunet.training.loss_functions.deep_supervision import MultipleOutputLoss2
 from nnunet.utilities.to_torch import maybe_to_torch, to_cuda
@@ -231,12 +230,9 @@ class nnUNetTrainerV2(nnUNetTrainer):
         :param run_online_evaluation:
         :return:
         """
-        timers = {}
-        time_data_gen_start = time.time()
         data_dict = next(data_generator)
         data = data_dict['data']
         target = data_dict['target']
-        timers['data_gen'] = time.time() - time_data_gen_start
 
         data = maybe_to_torch(data)
         target = maybe_to_torch(target)
@@ -249,11 +245,8 @@ class nnUNetTrainerV2(nnUNetTrainer):
 
         if self.fp16:
             with autocast():
-                time_forward_start = time.time()
                 output = self.network(data)
-                timers['forward'] = time.time() - time_forward_start
                 del data
-                time_backward_start = time.time()
                 l = self.loss(output, target)
 
             if do_backprop:
@@ -262,26 +255,21 @@ class nnUNetTrainerV2(nnUNetTrainer):
                 torch.nn.utils.clip_grad_norm_(self.network.parameters(), 12)
                 self.amp_grad_scaler.step(self.optimizer)
                 self.amp_grad_scaler.update()
-            timers['backward'] = time.time() - time_backward_start
         else:
-            time_forward_start = time.time()
             output = self.network(data)
-            timers['forward'] = time.time() - time_forward_start
             del data
-            time_backward_start = time.time()
             l = self.loss(output, target)
 
             if do_backprop:
                 l.backward()
                 torch.nn.utils.clip_grad_norm_(self.network.parameters(), 12)
                 self.optimizer.step()
-            timers['backward'] = time.time() - time_backward_start
         if run_online_evaluation:
             self.run_online_evaluation(output, target)
 
         del target
 
-        return l.detach().cpu().numpy(), timers
+        return l.detach().cpu().numpy()
 
     def do_split(self):
         """

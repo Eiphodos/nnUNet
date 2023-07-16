@@ -42,7 +42,7 @@ class nnUNetTrainerV2(nnUNetTrainer):
     """
 
     def __init__(self, plans_file, fold, output_folder=None, dataset_directory=None, batch_dice=True, stage=None,
-                 unpack_data=True, deterministic=True, fp16=False, neptune_logger=None):
+                 unpack_data=True, deterministic=True, fp16=False, neptune_logger=None, split_file=None):
         super().__init__(plans_file, fold, output_folder, dataset_directory, batch_dice, stage, unpack_data,
                          deterministic, fp16, neptune_logger)
         self.max_num_epochs = 1000
@@ -51,6 +51,7 @@ class nnUNetTrainerV2(nnUNetTrainer):
         self.ds_loss_weights = None
 
         self.pin_memory = True
+        self.split_file = split_file
 
     def initialize(self, training=True, force_load_plans=False):
         """
@@ -286,7 +287,10 @@ class nnUNetTrainerV2(nnUNetTrainer):
             # if fold==all then we use all images for training and validation
             tr_keys = val_keys = list(self.dataset.keys())
         else:
-            splits_file = join(self.dataset_directory, "splits_final.pkl")
+            if self.split_file is None:
+                splits_file = join(self.dataset_directory, "splits_final.pkl")
+            else:
+                splits_file = self.split_file
 
             # if the split file does not exist we need to create it
             if not isfile(splits_file):

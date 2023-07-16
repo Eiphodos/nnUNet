@@ -94,6 +94,7 @@ def main():
                              'file, for example model_final_checkpoint.model). Will only be used when actually training. '
                              'Optional. Beta. Use with caution.')
     parser.add_argument('--description', type=str, help='The description of the experiment, used for Neptune logging.')
+    parser.add_argument('--split_file', type=str, help='File containing CV splits')
 
     args = parser.parse_args()
 
@@ -159,7 +160,8 @@ def main():
                             batch_dice=batch_dice, stage=stage, unpack_data=decompress_data,
                             deterministic=deterministic,
                             fp16=run_mixed_precision,
-                            neptune_logger=neptune_logger)
+                            neptune_logger=neptune_logger,
+                            split_file=args.split_file)
     if args.disable_saving:
         trainer.save_final_checkpoint = False # whether or not to save the final checkpoint
         trainer.save_best_checkpoint = False  # whether or not to save the best checkpoint according to

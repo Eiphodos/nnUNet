@@ -458,7 +458,7 @@ class NetworkTrainer(object):
                     if i % 10 == 0:
                         self.print_to_log_file("Finished batch {}/{} ...".format(i, self.num_batches_per_epoch))
                         for k, v in timers.items():
-                            self.print_to_log_file("Timer {}: {} ...".format(k, v))
+                            self.print_to_log_file("Timer {}: {:.5f} ...".format(k, v))
 
             self.all_tr_losses.append(np.mean(train_losses_epoch))
             self.print_to_log_file("train loss : %.4f" % self.all_tr_losses[-1])

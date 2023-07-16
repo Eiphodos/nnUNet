@@ -93,6 +93,7 @@ def main():
                         help='path to nnU-Net checkpoint file to be used as pretrained model (use .model '
                              'file, for example model_final_checkpoint.model). Will only be used when actually training. '
                              'Optional. Beta. Use with caution.')
+    parser.add_argument('--description', type=str, help='The description of the experiment, used for Neptune logging.')
 
     args = parser.parse_args()
 

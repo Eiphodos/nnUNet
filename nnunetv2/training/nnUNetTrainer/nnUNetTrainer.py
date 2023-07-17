@@ -955,9 +955,12 @@ class nnUNetTrainer(object):
             # (softmax training) there needs tobe one output for the background. We are not interested in the
             # background Dice
             # [1:] in order to remove background
-            tp_hard = tp_hard[1:]
-            fp_hard = fp_hard[1:]
-            fn_hard = fn_hard[1:]
+            #tp_hard = tp_hard[1:]
+            #fp_hard = fp_hard[1:]
+            #fn_hard = fn_hard[1:]
+            tp_hard = tp_hard
+            fp_hard = fp_hard
+            fn_hard = fn_hard
 
         return {'loss': l.detach().cpu().numpy(), 'tp_hard': tp_hard, 'fp_hard': fp_hard, 'fn_hard': fn_hard}
 

@@ -51,9 +51,9 @@ class nnUNetTrainerV2_2epochs(nnUNetTrainerV2):
 
 class nnUNetTrainerV2_5epochs(nnUNetTrainerV2):
     def __init__(self, plans_file, fold, output_folder=None, dataset_directory=None, batch_dice=True, stage=None,
-                 unpack_data=True, deterministic=True, fp16=False):
+                 unpack_data=True, deterministic=True, fp16=False, neptune_logger=None):
         super().__init__(plans_file, fold, output_folder, dataset_directory, batch_dice, stage, unpack_data,
-                         deterministic, fp16)
+                         deterministic, fp16, neptune_logger)
         self.max_num_epochs = 5
 
     def validate(self, do_mirroring: bool = True, use_sliding_window: bool = True, step_size: float = 0.5,

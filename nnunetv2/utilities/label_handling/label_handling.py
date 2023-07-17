@@ -227,6 +227,10 @@ class LabelManager(object):
         return self.filter_background(self.all_labels)
 
     @property
+    def get_all_labels(self):
+        return self.all_labels
+
+    @property
     def num_segmentation_heads(self):
         if self.has_regions:
             return len(self.foreground_regions)

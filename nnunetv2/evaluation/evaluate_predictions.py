@@ -161,8 +161,8 @@ def compute_metrics_on_folder(folder_ref: str, folder_pred: str, output_file: st
     for m in metric_list:
         values = []
         for k in means.keys():
-            if k == 0 or k == '0':
-                continue
+            #if k == 0 or k == '0':
+            #    continue
             values.append(means[k][m])
         foreground_mean[m] = np.mean(values)
 

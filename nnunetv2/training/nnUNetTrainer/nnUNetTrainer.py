@@ -203,6 +203,10 @@ class nnUNetTrainer(object):
                                                            self.configuration_manager,
                                                            self.num_input_channels,
                                                            enable_deep_supervision=True).to(self.device)
+
+            def count_parameters(model):
+                return sum(p.numel() for p in model.parameters() if p.requires_grad)
+            print("Number of parameters in built model: {}".format(count_parameters(self.network)))
             # compile network for free speedup
             if ('nnUNet_compile' in os.environ.keys()) and (
                     os.environ['nnUNet_compile'].lower() in ('true', '1', 't')):
